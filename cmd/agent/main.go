@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"io"
-	"io/ioutil"
+	"os"
 )
 
 func main() {
@@ -16,42 +16,15 @@ func main() {
 		panic(err)
 	}
 
-	baseImage := "ubuntu:22.04"
-	err = pullImage(cli, baseImage)
+	script, err := os.ReadFile("./scripts/spa/angular_build.sh")
 	if err != nil {
 		panic(err)
 	}
 
-	script, err := ioutil.ReadFile("./scripts/angular_build.sh")
+	err = runScriptOnImage(cli, "spa_build_env", string(script))
 	if err != nil {
 		panic(err)
 	}
-
-	err = runScriptOnImage(cli, baseImage, string(script))
-	if err != nil {
-		panic(err)
-	}
-}
-
-func pullImage(cli *client.Client, imageName string) error {
-	fmt.Printf("Pulling %s image...\n", imageName)
-
-	// Pull the image
-	reader, err := cli.ImagePull(context.Background(), imageName, types.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	// Read and print the pull output
-	output, err := io.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(output))
-
-	fmt.Printf("%s image pulled successfully.\n", imageName)
-	return nil
 }
 
 func runScriptOnImage(cli *client.Client, imageName string, script string) error {
