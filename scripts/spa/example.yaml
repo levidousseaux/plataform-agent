@@ -1,0 +1,25 @@
+image: spa_build_env
+stages:
+  - name: CI
+    steps:
+      - name: clone
+        commands:
+          - echo Cloning repository
+
+      - name: build
+        commands:
+          - echo Building project
+
+      - name: unit tests
+        commands:
+          - echo Running unit tests
+
+      - name: integration tests
+        commands:
+          - echo "Running integration tests"
+
+  - name: CD
+    steps:
+      - name: PRODUCTION
+        commands:
+          - echo Deploy production
