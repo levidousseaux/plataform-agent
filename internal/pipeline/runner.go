@@ -1,69 +1,133 @@
 package pipeline
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"io"
+	"os"
+	"strings"
 )
 
 func RunPipeline(definition *Definition) error {
+	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
 
-	// Create a container with the specified image
+	id, err := StartContainer(ctx, cli, definition.Image)
+	if err != nil {
+		return err
+	}
+
+	err = RunStages(ctx, cli, id, definition)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = cli.ContainerStop(ctx, id, container.StopOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func StartContainer(ctx context.Context, cli *client.Client, image string) (string, error) {
 	resp, err := cli.ContainerCreate(
-		context.Background(),
-		&container.Config{
-			Image: definition.Image,
-			Cmd:   []string{"bash", "-c", definition.GetScript()},
-		},
+		ctx,
+		&container.Config{Image: image, Tty: true},
 		nil,
 		nil,
 		nil,
 		"",
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// Start the container
-	err = cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// Wait for the container to finish
-	statusCh, errCh := cli.ContainerWait(context.Background(), resp.ID, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
+	return resp.ID, nil
+}
+
+func RunStages(ctx context.Context, cli *client.Client, containerId string, definition *Definition) error {
+	for _, stage := range definition.Stages {
+		err := RunStage(ctx, cli, containerId, stage)
+
 		if err != nil {
 			return err
 		}
-	case <-statusCh:
 	}
 
-	// Retrieve the container logs
-	out, err := cli.ContainerLogs(context.Background(), resp.ID, types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
+	return nil
+}
+
+func RunStage(ctx context.Context, cli *client.Client, containerId string, stage Stage) error {
+	fmt.Printf("[%s]\n", stage.Name)
+
+	for _, step := range stage.Steps {
+		if err := RunStep(ctx, cli, containerId, step); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func RunStep(context context.Context, cli *client.Client, containerId string, step Step) error {
+	fmt.Printf("--Step %s\n", step.Name)
+	script := strings.Join(step.Commands, "\n")
+
+	execCreateResp, err := cli.ContainerExecCreate(context, containerId, types.ExecConfig{
+		Cmd:          []string{"bash", "-c", script},
+		AttachStdout: true,
+		AttachStderr: true,
 	})
 
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
-	// Print the container logs
-	logs, err := io.ReadAll(out)
+	attachResp, err := cli.ContainerExecAttach(context, execCreateResp.ID, types.ExecStartCheck{
+		Detach: false,
+	})
+
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(logs))
+	defer attachResp.Close()
+
+	stdoutChan := make(chan string)
+
+	go func() {
+		var stdoutBuf bytes.Buffer
+		_, err := io.Copy(io.MultiWriter(os.Stdout, &stdoutBuf), attachResp.Reader)
+		if err != nil {
+			panic(err)
+		}
+		stdoutChan <- stdoutBuf.String()
+	}()
+
+	waitResp, err := cli.ContainerExecInspect(context, execCreateResp.ID)
+	if err != nil {
+		return err
+	}
+
+	<-stdoutChan
+
+	// TODO: npm scripts is not returning exit code 1
+	if waitResp.ExitCode != 0 {
+		return errors.New("exit code is not 0")
+	}
 
 	return nil
 }

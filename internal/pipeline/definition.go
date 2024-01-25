@@ -5,8 +5,9 @@ import (
 )
 
 type Definition struct {
-	Image  string  `yaml:"image"`
-	Stages []Stage `yaml:"stages"`
+	Image      string  `yaml:"image"`
+	Repository string  `yaml:"repository"`
+	Stages     []Stage `yaml:"stages"`
 }
 
 type Stage struct {
@@ -24,23 +25,19 @@ func NewDefinitionFromYaml(yamlContent []byte) (*Definition, error) {
 
 	err := yaml.Unmarshal(yamlContent, &def)
 	if err != nil {
-		panic(err)
+		return nil, err
+	}
+
+	if def.Repository != "" {
+		cloneStep := Step{
+			Name: "Clone Repository",
+			Commands: []string{
+				"git clone " + def.Repository + " .",
+			},
+		}
+
+		def.Stages = append([]Stage{{Name: "Setup", Steps: []Step{cloneStep}}}, def.Stages...)
 	}
 
 	return &def, nil
-}
-
-func (definition *Definition) GetScript() string {
-	script := ""
-	for _, stage := range definition.Stages {
-		script += "echo [" + stage.Name + "]\n"
-
-		for _, actions := range stage.Steps {
-			script += "echo '--" + actions.Name + "'\n"
-			for _, command := range actions.Commands {
-				script += command + " \n"
-			}
-		}
-	}
-	return script
 }

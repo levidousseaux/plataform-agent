@@ -1,25 +1,24 @@
 image: spa_build_env
+repository: https://github.com/levidousseaux/react-sample.git
 stages:
   - name: CI
     steps:
-      - name: clone
+      - name: install
         commands:
-          - echo Cloning repository
+          - echo 'node version:' $(node -v)
+          - echo 'npm version:' $(npm -v)
+          - npm install
+
+      - name: lint
+        commands:
+          - npm run lint
 
       - name: build
         commands:
-          - echo Building project
-
-      - name: unit tests
-        commands:
-          - echo Running unit tests
-
-      - name: integration tests
-        commands:
-          - echo "Running integration tests"
+          - npm run build
 
   - name: CD
     steps:
       - name: PRODUCTION
         commands:
-          - echo Deploy production
+          - echo deploy into nginx
