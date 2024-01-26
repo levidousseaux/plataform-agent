@@ -80,12 +80,16 @@ func RunStage(ctx context.Context, cli *client.Client, containerId string, stage
 		}
 	}
 
+	fmt.Println("")
+
 	return nil
 }
 
 func RunStep(context context.Context, cli *client.Client, containerId string, step Step) error {
 	fmt.Printf("--Step %s\n", step.Name)
 	script := strings.Join(step.Commands, "\n")
+
+	fmt.Println("----Running: ", script)
 
 	execCreateResp, err := cli.ContainerExecCreate(context, containerId, types.ExecConfig{
 		Cmd:          []string{"bash", "-c", script},

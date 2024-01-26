@@ -6,6 +6,8 @@ ENV DEBIAN_FRONTEND noninteractive
 # Update the package lists
 RUN apt-get update \
     && apt-get install -y curl \
+    && apt-get install -y zip \
+    && apt-get install -y sshpass \
     && apt-get -y autoclean
 
 RUN mkdir -p /usr/local/nvm

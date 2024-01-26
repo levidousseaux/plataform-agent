@@ -1,7 +1,7 @@
 image: spa_build_env
 repository: https://github.com/levidousseaux/react-sample.git
 stages:
-  - name: CI
+  - name: Build & Test
     steps:
       - name: install
         commands:
@@ -17,8 +17,19 @@ stages:
         commands:
           - npm run build
 
-  - name: CD
+  - name: Artifact
     steps:
-      - name: PRODUCTION
+      - name: publish zip
+        template: zip
+        variables:
+          artifact_directory: dist
+          artifact_name: SPA_ZIP_ARTIFACT
+
+  - name: Deploy
+    steps:
+      - name: NGINX
         commands:
-          - echo deploy into nginx
+          - "sshpass -p teste123@ ssh -o \"StrictHostKeyChecking=no\" -tt root@172.17.0.2 'cd /etc/nginx/www \
+             && rm -rf angular_spa_test \
+             && curl -O https://plataform-agent-artifacts.s3.sa-east-1.amazonaws.com/SPA_REACT.zip \
+             && unzip SPA_REACT.zip -d angular_spa_test"

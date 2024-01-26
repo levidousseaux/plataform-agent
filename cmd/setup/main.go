@@ -19,6 +19,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = buildDockerImage(cli, "./scripts/nginx/", "nginx_ssh")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func buildDockerImage(cli *client.Client, buildContextPath, imageName string) error {

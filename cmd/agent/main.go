@@ -12,6 +12,10 @@ func main() {
 	}
 
 	definition, err := pipeline.NewDefinitionFromYaml(yamlFile)
+	if err != nil {
+		panic(err)
+	}
+
 	err = pipeline.RunPipeline(definition)
 
 	if err != nil {
