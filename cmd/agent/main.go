@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/levidousseaux/plataform-agent/internal/pipeline"
 	"os"
+
+	"github.com/levidousseaux/plataform-agent/internal/entity"
+	"github.com/levidousseaux/plataform-agent/internal/usecases"
 )
 
 func main() {
@@ -11,12 +13,12 @@ func main() {
 		panic(err)
 	}
 
-	definition, err := pipeline.NewDefinitionFromYaml(yamlFile)
+	definition, err := entity.NewDefinition(yamlFile)
 	if err != nil {
 		panic(err)
 	}
 
-	err = pipeline.RunPipeline(definition)
+	err = usecases.RunPipeline(definition)
 
 	if err != nil {
 		panic(err)

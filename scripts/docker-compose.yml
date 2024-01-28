@@ -1,0 +1,9 @@
+version: "2"
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "Teste123@"
+    ports:
+      - "5432:5432"
