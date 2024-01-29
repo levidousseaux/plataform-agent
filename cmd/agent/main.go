@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/levidousseaux/plataform-agent/internal/entity"
-	"github.com/levidousseaux/plataform-agent/internal/usecases"
 )
 
 func main() {
@@ -18,7 +17,7 @@ func main() {
 		panic(err)
 	}
 
-	err = usecases.RunPipeline(definition)
+	err = entity.RunPipeline(definition)
 
 	if err != nil {
 		panic(err)

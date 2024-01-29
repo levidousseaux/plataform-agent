@@ -1,12 +1,9 @@
-import { Header } from "@/app/components/header";
-import { Button } from "@/app/components/ui/button";
+import { Heading } from "@/app/components/heading";
 
 export default function Home() {
   return (
     <div>
-      <Header />
-      <p className="text-2xl font-black">Home 2</p>
-      <Button>Clique aqui</Button>
+      <Heading title="Seja bem vindo!" description="" />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-package routes
+package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func MapProjectRoutes(router fiber.Router, db *gorm.DB) {
+func MapProjectHandler(router fiber.Router, db *gorm.DB) {
 	group := router.Group("/project")
 
 	group.Get("/", func(c *fiber.Ctx) error {

@@ -2,13 +2,14 @@
   "name": "plataform-agent",
   "type": "module",
   "scripts": {
-    "build": "esbuild web/app/app.tsx --bundle --minify --outfile=web/static/index.js --format=cjs",
-    "build:css": "tailwindcss -i ./web/app/app.css -o ./web/static/index.css --minify",
+    "build": "esbuild web/app/app.tsx --bundle --minify --outfile=web/public/index.js --format=cjs",
+    "build:css": "tailwindcss -i ./web/app/app.css -o ./web/public/index.css --minify",
     "build:watch": "npm run build -- --watch",
     "build:css:watch": "npm run build:css -- --watch",
     "dev": "npm-run-all -p -r build:watch build:css:watch"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-navigation-menu": "^1.1.4",
     "@radix-ui/react-slot": "^1.0.2",
     "class-variance-authority": "^0.7.0",

@@ -1,4 +1,4 @@
-package usecases
+package entity
 
 import (
 	"bytes"
@@ -12,10 +12,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/levidousseaux/plataform-agent/internal/entity"
 )
 
-func RunPipeline(definition *entity.Definition) error {
+func RunPipeline(definition *Definition) error {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -61,7 +60,7 @@ func StartContainer(ctx context.Context, cli *client.Client, image string) (stri
 	return resp.ID, nil
 }
 
-func RunStages(ctx context.Context, cli *client.Client, containerId string, definition *entity.Definition) error {
+func RunStages(ctx context.Context, cli *client.Client, containerId string, definition *Definition) error {
 	for _, stage := range definition.Stages {
 		err := RunStage(ctx, cli, containerId, stage)
 
@@ -73,7 +72,7 @@ func RunStages(ctx context.Context, cli *client.Client, containerId string, defi
 	return nil
 }
 
-func RunStage(ctx context.Context, cli *client.Client, containerId string, stage entity.Stage) error {
+func RunStage(ctx context.Context, cli *client.Client, containerId string, stage Stage) error {
 	fmt.Printf("[%s]\n", stage.Name)
 
 	for _, step := range stage.Steps {
@@ -87,7 +86,7 @@ func RunStage(ctx context.Context, cli *client.Client, containerId string, stage
 	return nil
 }
 
-func RunStep(context context.Context, cli *client.Client, containerId string, step entity.Step) error {
+func RunStep(context context.Context, cli *client.Client, containerId string, step Step) error {
 	fmt.Printf("--Step %s\n", step.Name)
 	script := strings.Join(step.Commands, "\n")
 
