@@ -31,7 +31,12 @@ func main() {
 	handler.MapProjectHandler(api, db)
 	handler.MapWebHandler(app)
 
-	log.Fatal(app.Listen("localhost:3000"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal(app.Listen("localhost:3000" + port))
+	} else {
+		log.Fatal(app.Listen(":" + port))
+	}
 }
 
 func initializeAuth() {
